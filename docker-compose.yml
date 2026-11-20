@@ -1,0 +1,28 @@
+# Optional. The app runs without Docker (npm run dev). Use this for PostgreSQL or a full container deployment.
+# Only the postgres service was run during development; the app services follow the standard pattern.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment: { POSTGRES_USER: govdocs, POSTGRES_PASSWORD: govdocs123, POSTGRES_DB: govdocs }
+    ports: ["5432:5432"]
+    volumes: [pg_data:/var/lib/postgresql/data]
+
+  api:
+    profiles: ["full"]
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://govdocs:govdocs123@postgres:5432/govdocs
+      STORAGE_DIR: /data/storage
+      DATA_DIR: /data
+    ports: ["4000:4000"]
+    volumes: [app_data:/data]
+    depends_on: [postgres]
+
+  web:
+    profiles: ["full"]
+    build: ./frontend
+    ports: ["3000:3000"]
+    depends_on: [api]
+
+volumes: { pg_data: {}, app_data: {} }

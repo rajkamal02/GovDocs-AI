@@ -1,0 +1,1 @@
+{ "editor.formatOnSave": true, "editor.tabSize": 2, "typescript.tsdk": "frontend/node_modules/typescript/lib", "tailwindCSS.experimental.classRegex": [["clsx\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]] }

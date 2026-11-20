@@ -1,0 +1,47 @@
+# One server (any Linux VPS with Docker). Files + database live on the server's disk (persistent volumes).
+# 1) point two DNS A records to the server: example.com and api.example.com
+# 2) cp .env.example .env  and fill it   3) docker compose up -d --build
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment: { DOMAIN: "${DOMAIN}", API_DOMAIN: "${API_DOMAIN}" }
+    volumes: ["./Caddyfile:/etc/caddy/Caddyfile:ro", "caddy_data:/data", "caddy_config:/config"]
+    depends_on: [web, api]
+
+  web:
+    build:
+      context: ../../frontend
+      args:
+        NEXT_PUBLIC_API_URL: "https://${API_DOMAIN}/api"
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "${CLERK_PUBLISHABLE_KEY}"
+    environment: { CLERK_SECRET_KEY: "${CLERK_SECRET_KEY}" }
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ../../backend
+      args: { WITH_LIBREOFFICE: "${WITH_LIBREOFFICE:-false}" }
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PUBLIC_API_URL: "https://${API_DOMAIN}"
+      FRONTEND_URL: "https://${DOMAIN}"
+      CORS_ORIGIN: "https://${DOMAIN}"
+      DATABASE_URL: "postgresql://govdocs:${DB_PASSWORD}@postgres:5432/govdocs"
+      CLERK_SECRET_KEY: "${CLERK_SECRET_KEY}"
+      ENCRYPTION_KEY: "${ENCRYPTION_KEY}"
+      STORAGE_DIR: /data/storage
+      MAX_FILE_MB: "${MAX_FILE_MB:-50}"
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+    volumes: ["files:/data/storage"]
+    depends_on: [postgres]
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment: { POSTGRES_USER: govdocs, POSTGRES_PASSWORD: "${DB_PASSWORD}", POSTGRES_DB: govdocs }
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+
+volumes: { caddy_data: {}, caddy_config: {}, files: {}, pgdata: {} }

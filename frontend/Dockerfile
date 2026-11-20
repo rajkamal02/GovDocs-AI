@@ -1,0 +1,13 @@
+FROM node:20-alpine
+WORKDIR /app
+# NEXT_PUBLIC_* values are baked in at BUILD time. Pass them as build args.
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY NEXT_TELEMETRY_DISABLED=1
+COPY package*.json ./
+RUN npm install --no-audit --no-fund
+COPY . .
+RUN npm run build
+ENV NODE_ENV=production
+EXPOSE 3000
+CMD ["npm", "run", "start"]
