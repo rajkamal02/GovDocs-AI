@@ -10,6 +10,6 @@ function useClerkToken() { const { getToken } = useAuth(); return useCallback(()
 export function useToken(): () => Promise<string | null> { return CLERK_ENABLED ? useClerkToken() : devToken; }
 
 export function UserBadge() {
-  if (CLERK_ENABLED) return <UserButton afterSignOutUrl="/" />;
+  if (CLERK_ENABLED) return <UserButton />;
   return <div title="Local dev mode (no login)" className="grid h-8 w-8 place-items-center rounded-full bg-brand-600 text-xs font-bold text-white">ME</div>;
 }
