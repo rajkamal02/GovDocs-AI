@@ -6,3 +6,6 @@ dist/
 .env.local
 backend/data/*
 !backend/data/.gitkeep
+
+.vercel
+.env*
